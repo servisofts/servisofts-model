@@ -33,11 +33,30 @@ export default abstract class SAction {
             return null;
         }
         return data;
-
     }
-    getByKey(key, extra = {}) {
+    getAllBy(filters = {}) {
+        var data = this.getAll();
+        if (!data) return null;
+        var newData = {};
+        Object.keys(data).map(key => {
+            var obj = data[key];
+            var allow = true;
+            Object.keys(filters).map(filtro_key => {
+                var filtro = filters[filtro_key];
+                if (obj[filtro_key] != filtro) {
+                    allow = false;
+                }
+            })
+            if (allow) {
+                newData[key] = obj;
+            }
+        })
+        return newData;
+    }
+    getByKey(key, extra = {}, _default) {
         var data = this.getAll(extra);
         if (!data) return null;
+        if (!data[key]) return _default;
         return data[key];
     }
     async registro(extra = {}) {

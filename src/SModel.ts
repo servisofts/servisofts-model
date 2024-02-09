@@ -7,7 +7,7 @@ interface infoInterface {
     component: String;
     version?: String;
 }
-type typeColumnValue = "text" | "timestamp" | "time" | "date" | "integer" | "double" | "boolean"
+type typeColumnValue = "text" | "timestamp" | "time" | "date" | "integer" | "double" | "boolean" | "json"
 interface ColumnInterface {
     type: typeColumnValue;
     pk?: boolean;
@@ -19,13 +19,18 @@ interface ColumnInterface {
 interface ModelInterface<E, F> {
     info: infoInterface;
     pk?: string;
+    reducerName?: string,
     Columns?: { [index: string]: ColumnInterface };
     image?: { api?: string, name?: string };
     Action: E;
     Reducer: F;
 }
+export type ColumnType = { [index: string]: ColumnInterface }
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 var ARGUMENT_NAMES = /([^\s,]+)/g;
+
+export var Model: any = {};
+
 const getParamNames = (func) => {
     var fnStr = func.toString().replace(STRIP_COMMENTS, '');
     var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
@@ -44,57 +49,71 @@ const getParamNames = (func) => {
     return result;
 }
 export default class SModel<T extends SAction, U extends SReducer> implements ModelInterface<T, U> {
-
     static _models;
-    static declare(Model: { [index: string]: SModel<any, any> }) {
-        this._models = Model;
+    static getModel(name) {
+        if (!this._models) return null;
+        return this._models[name]
+    }
+    static declare(Models: { [index: string]: SModel<any, any> }) {
+        this._models = Models;
         const TEST = () => {
-            Object.values(Model).map((obj) => {
+            Object.values(Models).map((obj) => {
                 obj.Action.TEST();
             })
         }
         const CLEAR = () => {
-            Object.values(Model).map((obj) => {
+            Object.values(Models).map((obj) => {
                 obj.Action.CLEAR();
             })
         }
         const setStore = (store) => {
-            Object.values(Model).map((obj) => {
+            Object.values(Models).map((obj) => {
                 obj.store = store;
             })
         }
         const combineReducers = (reducers) => {
-            Object.keys(Model).map((className) => {
-                reducers[className + "Reducer"] = Model[className]._Reducer;
+            Object.keys(Models).map((className) => {
+                if (Models[className].reducerName) {
+                    reducers[Models[className].reducerName] = Models[className]._Reducer;
+                } else {
+                    reducers[className + "Reducer"] = Models[className]._Reducer;
+                }
+
             })
             return reducers;
         }
-        return {
-            _events: {
-                setStore,
-                combineReducers,
-                CLEAR,
-                TEST,
-            }
+
+        const _events = {
+            setStore,
+            combineReducers,
+            CLEAR,
+            TEST,
         }
+        Model = {
+            ...Models,
+            _events: _events,
+        }
+        return { _events: _events };
     }
     name;
     info: infoInterface;
     Action: T;
     Reducer: U;
+    reducerName: string;
     store;
     pk;
     image;
     Columns: { [index: string]: ColumnInterface };
     constructor(props: ModelInterface<any, any>) {
         this.name = props.info.component;
+        Model[this.name] = this;
         this.info = {
             version: "1.0",
             ...props.info
         };
+        this.reducerName = props.reducerName;
         this.image = props.image;
         this.pk = props.pk ?? "key";
-
         this.Columns = props.Columns;
         if (this.Columns) {
             var pks = Object.keys(this.Columns).filter(k => this.Columns[k].pk);
@@ -198,5 +217,9 @@ export default class SModel<T extends SAction, U extends SReducer> implements Mo
             passed: true
         }
         return { ...state }
+    }
+
+    getDetail() {
+        return {}
     }
 }

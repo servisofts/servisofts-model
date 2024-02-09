@@ -13,8 +13,22 @@ export default abstract class SReducer {
             ...extra
         }
     }
-    getAll(state, action) {
+    // getAll(state, action) {
+    //     if (action.estado == "exito") {
+    //         state.data = action.data;
+    //     }
+    // }
+
+    // Actualice el 8 de julio de 2023, ricky paz d.
+    getAll(state: any, action: any): void {
         if (action.estado == "exito") {
+            if (action.data && typeof action.data == "object") {
+                if (Array.isArray(action.data)) {
+                    state.data = {};
+                    action.data.map((o) => state.data[o[this.model.pk]] = o);
+                    return;
+                }
+            }
             state.data = action.data;
         }
     }

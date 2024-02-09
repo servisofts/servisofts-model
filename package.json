@@ -1,6 +1,6 @@
 {
   "name": "servisofts-model",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "--",
   "author": "servisofts",
   "repository": {
@@ -14,9 +14,11 @@
   "peerDependencies": {
     "react": "*",
     "react-dom": "*",
+    "react-redux": "*",
     "react-native": "*",
     "react-native-web": "*",
     "servisofts-socket": "*"
+    
   },
   "devDependencies": {
     "@types/react": "^17.0.17",
