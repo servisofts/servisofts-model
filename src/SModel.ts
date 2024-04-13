@@ -165,6 +165,11 @@ export default class SModel<T extends SAction, U extends SReducer> implements Mo
             }
             return { ...state };
         }
+        if (this.Reducer["extra"]) {
+            var result = this.Reducer["extra"](state, action);
+            if (!result) return state;
+            return result;
+        }
         return state;
     }
     _getFunction(type) {

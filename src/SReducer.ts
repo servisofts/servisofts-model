@@ -46,4 +46,7 @@ export default abstract class SReducer {
             }
         }
     }
+    extra(state, action) {
+
+    }
 }
